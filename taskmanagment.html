@@ -1,0 +1,194 @@
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      #task-input-field {
+        width: 70%;
+        padding: 10px;
+      }
+
+      #add-task {
+        padding: 10px;
+      }
+
+      .task-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        background-color: var(--task-bg);
+      }
+
+      .progress-bar {
+        width: 50%;
+        background-color: var(--border-color);
+        height: 10px;
+        margin-right: 10px;
+      }
+
+      .completed {
+        text-decoration: line-through;
+      }
+
+      .light-mode {
+        --background-color: #ffffff;
+        --text-color: #000000;
+        --border-color: #cccccc;
+        --task-bg: #f9f9f9;
+      }
+
+      .dark-mode {
+        --background-color: #333333;
+        --text-color: #ffffff;
+        --border-color: #666666;
+        --task-bg: #444444;
+      }
+
+      #pending-tasks {
+        margin-top: 10px;
+        font-weight: bold;
+      }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Task Manager</h1>
+        <div class="username">Welcome, <span id="username">User</span></div>
+        <button id="toggle-theme">Toggle Dark/Light Mode</button>
+      </div>
+
+      <div class="task-input">
+        <input
+          type="text"
+          id="task-input-field"
+          placeholder="Enter a new task"
+        />
+        <button id="add-task">Add Task</button>
+      </div>
+
+      <ul id="task-list"></ul>
+
+      <div id="pending-tasks">Pending tasks: 0</div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", async function () {
+        const usernameElement = document.getElementById("username");
+        const taskList = document.getElementById("task-list");
+        const taskInputField = document.getElementById("task-input-field");
+        const addTaskButton = document.getElementById("add-task");
+        const toggleThemeButton = document.getElementById("toggle-theme");
+        const pendingTasksElement = document.getElementById("pending-tasks");
+        let darkMode = false;
+        let pendingTasksCount = 0;
+
+        const { value: name } = await Swal.fire({
+          title: "Enter your name",
+          input: "text",
+          inputLabel: "Your name",
+          inputPlaceholder: "Enter your name",
+          showCancelButton: false,
+          inputValidator: (value) => {
+            if (!value) {
+              return "You need to enter your name!";
+            }
+          },
+        });
+
+        if (name) {
+          usernameElement.textContent = name;
+        }
+
+        function updatePendingTasks() {
+          const totalTasks = document.querySelectorAll(".task-item");
+          const completedTasks = document.querySelectorAll(".completed");
+          pendingTasksCount = totalTasks.length - completedTasks.length;
+          pendingTasksElement.textContent = `Pending tasks: ${pendingTasksCount}`;
+        }
+
+        addTaskButton.addEventListener("click", function () {
+          const taskText = taskInputField.value;
+          if (taskText) {
+            createTask(taskText);
+            taskInputField.value = "";
+            updatePendingTasks();
+          }
+        });
+
+        function createTask(text) {
+          const taskItem = document.createElement("li");
+          taskItem.classList.add("task-item");
+
+          const taskContent = document.createElement("span");
+          taskContent.textContent = text;
+
+          const progressBar = document.createElement("div");
+          progressBar.classList.add("progress-bar");
+
+          const completeButton = document.createElement("button");
+          completeButton.textContent = "Complete";
+          completeButton.addEventListener("click", () => {
+            taskContent.classList.add("completed");
+            progressBar.style.width = "100%";
+            updatePendingTasks();
+          });
+
+          const deleteButton = document.createElement("button");
+          deleteButton.textContent = "Delete";
+          deleteButton.addEventListener("click", () => {
+            taskList.removeChild(taskItem);
+            updatePendingTasks();
+          });
+
+          const editButton = document.createElement("button");
+          editButton.textContent = "Edit";
+          editButton.addEventListener("click", () => {
+            const newText = prompt("Edit your task:", taskContent.textContent);
+            if (newText) {
+              taskContent.textContent = newText;
+            }
+          });
+
+          taskItem.appendChild(progressBar);
+          taskItem.appendChild(taskContent);
+          taskItem.appendChild(completeButton);
+          taskItem.appendChild(editButton);
+          taskItem.appendChild(deleteButton);
+          taskList.appendChild(taskItem);
+        }
+
+        toggleThemeButton.addEventListener("click", function () {
+          darkMode = !darkMode;
+          document.body.classList.toggle("dark-mode", darkMode);
+          document.body.classList.toggle("light-mode", !darkMode);
+        });
+
+        document.body.classList.add("light-mode");
+      });
+    </script>
+  </body>
+</html>
